@@ -1,0 +1,54 @@
+name: Create Release
+on: workflow_dispatch
+jobs:
+  prepare-release-version:
+    uses: ./.github/workflows/increment-version.yml
+    secrets: inherit
+    permissions:
+      contents: write
+    with:
+      snapshot: remove
+      commit_message: "Releasing "
+  build-and-publish:
+    needs: prepare-release-version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout project source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare-release-version.outputs.commit_hash }}
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      - name: Build and Publish
+        run: ./gradlew publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MVN_KOVERTX_IO_TOKEN: ${{ secrets.MVN_KOVERTX_IO_TOKEN }}
+  create-release:
+    needs:
+      - prepare-release-version
+      - build-and-publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_VERSION: ${{ needs.prepare-release-version.outputs.new_version }}
+          COMMIT_HASH: ${{ needs.prepare-release-version.outputs.commit_hash }}
+        run: |
+          gh release create "v${NEW_VERSION}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --target "${COMMIT_HASH}" \
+            --title "v${NEW_VERSION}" \
+            --generate-notes

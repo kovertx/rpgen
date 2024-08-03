@@ -1,0 +1,102 @@
+name: Increment Version
+on:
+  workflow_call:
+    inputs:
+      part:
+        description: 'The part of the version to increment (major, minor, patch)'
+        required: false
+        type: string
+        default: 'none'
+      snapshot:
+        description: 'Whether to add or remove SNAPSHOT (add, remove, none)'
+        required: true
+        type: string
+      commit_message:
+        description: 'The commit message for the version update'
+        required: true
+        type: string
+    outputs:
+      new_version:
+        description: 'The newly created version'
+        value: ${{ jobs.increment_version.outputs.new_version }}
+      commit_hash:
+        description: 'The created commit hash'
+        value: ${{ jobs.increment_version.outputs.commit_hash }}
+jobs:
+  increment_version:
+    runs-on: ubuntu-latest
+    outputs:
+      commit_hash: ${{ steps.update_version.outputs.commit_hash }}
+      new_version: ${{ steps.update_version.outputs.new_version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Update version
+        id: update_version
+        shell: bash
+        run: |
+          CURRENT_VERSION=$(grep '^rpgen.version=' gradle.properties | cut -d'=' -f2)
+          echo "CURRENT_VERSION=$CURRENT_VERSION"
+          PART="${{ inputs.part }}"
+          SNAPSHOT="${{ inputs.snapshot }}"
+
+          # Remove SNAPSHOT if present
+          BASE_VERSION=$(echo "$CURRENT_VERSION" | sed 's/-SNAPSHOT//')
+
+          # Split the version into major, minor, and patch components
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
+
+          # Increment the specified part
+          case "$PART" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+            none)
+              ;;
+            *)
+              echo "Invalid part: $PART"
+              exit 1
+              ;;
+          esac
+
+          # Reconstruct the version
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+
+          # Handle SNAPSHOT suffix
+          case "$SNAPSHOT" in
+            add)
+              NEW_VERSION="$NEW_VERSION-SNAPSHOT"
+              ;;
+            remove)
+              # already removed above
+              ;;
+            none)
+              if [[ "$CURRENT_VERSION" == *-SNAPSHOT ]]; then
+                NEW_VERSION="$NEW_VERSION-SNAPSHOT"
+              fi
+              ;;
+            *)
+              echo "Invalid snapshot action: $SNAPSHOT"
+              exit 1
+              ;;
+          esac
+          echo "NEW_VERSION=$NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          sed -i "s/^rpgen.version=.*/rpgen.version=$NEW_VERSION/" gradle.properties
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git add gradle.properties
+          git commit -m "${{ inputs.commit_message }} $NEW_VERSION"
+          COMMIT_HASH=$(git rev-parse HEAD)
+          git push
+          echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
