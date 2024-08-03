@@ -36,11 +36,11 @@ subprojects {
         }
         repositories {
             maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/kovertx/rpgen")
+                name = "KovertxReleases"
+                url = uri("https://mvn.kovertx.io/kovertx-releases")
                 credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = System.getenv("GITHUB_TOKEN")
+                    username = "kovertx_deploy"
+                    password = System.getenv("MVN_KOVERTX_IO_TOKEN")
                 }
             }
         }
