@@ -5,6 +5,9 @@ plugins {
 
 dependencies {
     implementation(project(":rpgen-core"))
+    api(project(":rpgen-plugin-kotlin"))
+    api(project(":rpgen-plugin-typescript"))
+    api(project(":rpgen-plugin-openapi"))
 }
 
 gradlePlugin {
