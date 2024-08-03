@@ -1,0 +1,24 @@
+name: Prepare Snapshot Version
+on:
+  workflow_dispatch:
+    inputs:
+      increment-version:
+        description: What type of version increment to apply.
+        required: true
+        type: choice
+        options:
+          - none
+          - patch
+          - minor
+          - major
+        default: patch
+jobs:
+  prepare-release-version:
+    uses: ./.github/workflows/increment-version.yml
+    secrets: inherit
+    permissions:
+      contents: write
+    with:
+      snapshot: add
+      part: ${{ inputs.increment-version }}
+      commit_message: "Preparing "
