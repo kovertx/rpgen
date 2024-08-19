@@ -14,7 +14,7 @@ object KotlinVertxEventBusRpcGenerator : KotlinGeneratorBase<Unit>() {
         val pkgPath = pkg.replace(Regex("\\s*\\.\\s*"), "/")
 
         val modelPkg = mergeKotlinConfigs(ctx.schemas, "model")
-            .pkg ?: "com.pdehaan.rpggen.demo"
+            .pkg ?: "io.kovertx.rpggen.demo"
 
         ctx.schemas.rpcs.forEach { rpc ->
             ctx.output.writeFile("${pkgPath}/Generated${rpc.name}EventBusRpc.kt") {

@@ -61,6 +61,7 @@ object KotlinModelGenerator : KotlinGeneratorBase<Unit>() {
                     ln("import java.util.UUID")
 
                     config.imports.forEach { printImport(it) }
+                    config.aliases.forEach { printTypeAlias(it) }
 
                     printModelTypes(this, model)
                 }
@@ -85,8 +86,14 @@ object KotlinModelGenerator : KotlinGeneratorBase<Unit>() {
         .p("data class ${id.name}(val value: UUID) ").curly {
             p("companion object : KSerializer<${id.name}> ").curly {
                 ln("override val descriptor = PrimitiveSerialDescriptor(\"${id.name}\", PrimitiveKind.STRING)")
-                ln("override fun deserialize(decoder: Decoder) = ${id.name}(UUID.fromString(decoder.decodeString()))")
-                ln("override fun serialize(encoder: Encoder, value: ${id.name}) = encoder.encodeString(value.value.toString())")
+
+                if (id.tags.contains("base64")) {
+                    ln("override fun deserialize(decoder: Decoder) = ${id.name}(UUIDUtils.decodeB64(decoder.decodeString()))")
+                    ln("override fun serialize(encoder: Encoder, value: ${id.name}) = encoder.encodeString(UUIDUtils.encodeB64(value.value))")
+                } else {
+                    ln("override fun deserialize(decoder: Decoder) = ${id.name}(UUID.fromString(decoder.decodeString()))")
+                    ln("override fun serialize(encoder: Encoder, value: ${id.name}) = encoder.encodeString(value.value.toString())")
+                }
             }
         }
 

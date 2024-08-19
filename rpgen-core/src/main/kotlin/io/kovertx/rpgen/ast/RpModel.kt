@@ -30,7 +30,8 @@ data class RpOpaque(
  */
 data class RpId(
     override val name: String,
-    override val parsedFrom: SourceRef
+    override val parsedFrom: SourceRef,
+    val tags: Set<String>
 ) : RpTypeDef
 
 /**

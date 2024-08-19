@@ -20,10 +20,20 @@ object KotlinLanguage : RpLanguage<KotlinConfig> {
                 KotlinImport(
                     klassName = it.scoped_identifier().text,
                     alias = it.identifier()?.text)
+            },
+            aliases = root.kotlin_typealias().map {
+                KotlinTypeAlias(
+                    name = it.identifier().text,
+                    src = it.scoped_identifier().text
+                )
             }
         )
     }
 }
 
-data class KotlinConfig(val pkg: String?, val imports: List<KotlinImport>)
+data class KotlinConfig(
+    val pkg: String?,
+    val imports: List<KotlinImport>,
+    val aliases: List<KotlinTypeAlias>)
 data class KotlinImport(val klassName: String, val alias: String?)
+data class KotlinTypeAlias(val name: String, val src: String)

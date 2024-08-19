@@ -83,14 +83,19 @@ abstract class KotlinGeneratorBase<TConf : Any> : RpGenerator<KotlinConfig, TCon
         schemas: RpSchemas,
         scope: String
     ) : KotlinConfig = getKotlinConfigs(schemas, scope)
-        .fold(KotlinConfig(null, emptyList())) { a, b -> KotlinConfig(
+        .fold(KotlinConfig(null, emptyList(), emptyList())) { a, b -> KotlinConfig(
             pkg = b.pkg ?: a.pkg,
-            imports = a.imports.plus(b.imports))
+            imports = a.imports.plus(b.imports),
+            aliases = a.aliases.plus(b.aliases))
         }
 
     protected fun SmartWriter.printImport(import: KotlinImport): SmartWriter {
         p("import ${import.klassName}")
         if (import.alias != null) p(" as ${import.alias}")
         return ln()
+    }
+
+    protected fun SmartWriter.printTypeAlias(alias: KotlinTypeAlias): SmartWriter {
+        return ln("typealias ${alias.name} = ${alias.src}")
     }
 }

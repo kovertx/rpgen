@@ -76,11 +76,11 @@ object KotlinKovertxWebGenerator : KotlinGeneratorBase<Unit>() {
         ctx.schemas.https.forEach { http ->
 
             val config = mergeKotlinConfigs(ctx.schemas, "http")
-            val pkg = (config.pkg ?: "com.pdehaan.demo")
+            val pkg = (config.pkg ?: "io.kovertx.rpgen.demo")
             val pkgPath = pkg.replace(Regex("\\s*\\.\\s*"), "/")
 
             val modelPkg = mergeKotlinConfigs(ctx.schemas, "model")
-                .pkg ?: "com.pdehaan.rpggen.demo"
+                .pkg ?: "io.kovertx.rpggen.demo"
 
             ctx.output.writeFile("${pkgPath}/Generated${http.name}Routes.kt") {
                 smartly {

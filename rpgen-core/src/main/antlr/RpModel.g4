@@ -11,7 +11,7 @@ model_root:
 
 extern_decl: EXTERN name=identifier;
 
-id_decl: ID name=identifier;
+id_decl: ID name=identifier tags_decl?;
 
 enum_decl: ENUM name=identifier LC
   enum_value
@@ -20,6 +20,8 @@ enum_decl: ENUM name=identifier LC
   RC;
 
 struct_decl: mutation* STRUCT name=identifier (base=type_ref)? struct_body?;
+
+tags_decl: LB identifier (COMMA identifier)* RB;
 
 mutation: AT id=identifier LP (expr (COMMA expr)*)? RP;
 

@@ -51,7 +51,10 @@ object ModelParser : BaseExprParser<
         RpExternalTypeDef(ctx.name.text, parent.child(ctx))
 
     private fun mapId(ctx: Id_declContext, parent: SourceRef) =
-        RpId(ctx.name.text, parent.child(ctx))
+        RpId(
+            name = ctx.name.text,
+            parsedFrom = parent.child(ctx),
+            tags = ctx.tags_decl()?.identifier()?.map { it.text }?.toSet() ?: emptySet())
 
     private fun mapOpaque(ctx: Opaque_declContext, parent: SourceRef) = RpOpaque(
         name = ctx.name.text,
